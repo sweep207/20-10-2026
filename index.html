@@ -281,15 +281,16 @@ $('wishForm').addEventListener('submit',async e=>{
   const name=$('wishName').value.trim(),to=$('wishTo').value.trim(),message=$('wishMessage').value.trim();
   if(!message){$('formStatus').textContent='Bạn hãy nhập lời chúc trước nhé.';return}
   const submit=e.submitter || $('wishForm').querySelector('[type="submit"]');
-  submit.disabled=true;$('formStatus').textContent='Đang gửi lời chúc…';
+  submit.disabled=true;$('formStatus').style.display='block';$('formStatus').textContent='Đang gửi lời chúc…';
   try{
     const finalMessage=to ? 'Gửi '+to+': '+message : message;
     await apiFetch('/wishes',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({sender_name:name||'Ẩn danh',message:finalMessage,status:'pending'})});
     $('wishName').value='';$('wishTo').value='';$('wishMessage').value='';
-    $('formStatus').textContent='Đã gửi lời chúc lên hệ thống! Lời nhắn sẽ xuất hiện sau khi được duyệt. 💌';
+    $('formStatus').style.display='block';$('formStatus').textContent='Đã gửi lời chúc lên hệ thống! Lời nhắn sẽ xuất hiện sau khi được duyệt. 💌';
   }catch(err){
-    $('formStatus').textContent='Chưa gửi được. Hãy kiểm tra cấu hình bảng/RLS Supabase rồi thử lại.';
-    console.error(err);
+    // Không hiển thị lỗi kỹ thuật cho khách truy cập; ghi lỗi vào console để quản trị viên kiểm tra.
+    $('formStatus').textContent='';$('formStatus').style.display='none';
+    console.error('Không gửi được lời chúc lên Supabase:',err);
   }finally{submit.disabled=false}
 });
 $('exportWishes').addEventListener('click',async()=>{
