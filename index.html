@@ -266,7 +266,7 @@ async function loadApproved(){
   const list=$('personalList');list.replaceChildren();
   const loading=document.createElement('p');loading.className='hint';loading.textContent='Đang tải lời chúc…';list.append(loading);
   try{
-    const rows=await apiFetch('/wishes?select=id,sender_name,message,status,created_at&status=eq.approved&order=created_at.desc');
+    const rows=await apiFetch('/wishes',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({sender_name:name||'Ẩn danh',message:finalMessage,status:'pending'})});
     approved=(rows||[]).map(fromDb);renderPublic();
   }catch(e){list.replaceChildren();const p=document.createElement('p');p.className='status';p.textContent='Không tải được lời chúc từ máy chủ. Kiểm tra bảng wishes và chính sách RLS trong Supabase.';list.append(p);console.error(e)}
 }
