@@ -142,7 +142,7 @@ button,input,textarea{font:inherit}button{border:0;border-radius:999px;padding:1
 <h3>✍️ Gửi lời chúc cho Nhóm 3</h3>
 <p class="desc">Ai cũng có thể gửi lời chúc. Để giữ không gian dễ thương và an toàn, lời nhắn sẽ ở trạng thái chờ duyệt trước khi xuất hiện công khai.</p>
 <form id="wishForm">
-<div class="field"><label for="wishName">Tên người gửi (có thể để trống)</label><input id="wishName" maxlength="70" placeholder="Ví dụ: Minh Anh"></div>
+<div class="field"><label for="wishName">Tên người gửi (có thể để trống; nếu bỏ trống sẽ hiển thị “Ẩn danh”)</label><input id="wishName" maxlength="70" placeholder="Ví dụ: Minh Anh"></div>
 <div class="field"><label for="wishTo">Gửi đến (không bắt buộc)</label><input id="wishTo" maxlength="70" placeholder="Ví dụ: Các bạn nữ Nhóm 3"></div>
 <div class="field"><label for="wishMessage">Lời chúc *</label><textarea id="wishMessage" maxlength="600" required placeholder="Viết lời chúc thật tử tế, đáng yêu nhé..."></textarea></div>
 <div class="form-actions"><button type="submit">Gửi để duyệt 💌</button></div>
@@ -266,9 +266,15 @@ async function loadApproved(){
   const list=$('personalList');list.replaceChildren();
   const loading=document.createElement('p');loading.className='hint';loading.textContent='Đang tải lời chúc…';list.append(loading);
   try{
-    const rows=await apiFetch('/wishes',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({sender_name: name?.trim() || 'Ẩn danh',message:finalMessage,status:'pending'})});
+    // Chỉ đọc lời chúc đã được duyệt; không tạo bản ghi mới khi tải trang.
+    const rows=await apiFetch('/wishes?select=id,sender_name,message,status,created_at&status=eq.approved&order=created_at.desc');
     approved=(rows||[]).map(fromDb);renderPublic();
-  }catch(e){list.replaceChildren();const p=document.createElement('p');p.className='status';p.textContent='Không tải được lời chúc từ máy chủ. Kiểm tra bảng wishes và chính sách RLS trong Supabase.';list.append(p);console.error(e)}
+  }catch(e){
+    list.replaceChildren();
+    const p=document.createElement('p');p.className='status';
+    p.textContent='Không tải được lời chúc từ máy chủ. Kiểm tra bảng wishes và chính sách RLS trong Supabase.';
+    list.append(p);console.error(e)
+  }
 }
 $('wishForm').addEventListener('submit',async e=>{
   e.preventDefault();
@@ -278,7 +284,7 @@ $('wishForm').addEventListener('submit',async e=>{
   submit.disabled=true;$('formStatus').textContent='Đang gửi lời chúc…';
   try{
     const finalMessage=to ? 'Gửi '+to+': '+message : message;
-    await apiFetch('/wishes',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({sender_name:name||null,message:finalMessage,status:'pending'})});
+    await apiFetch('/wishes',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({sender_name:name||'Ẩn danh',message:finalMessage,status:'pending'})});
     $('wishName').value='';$('wishTo').value='';$('wishMessage').value='';
     $('formStatus').textContent='Đã gửi lời chúc lên hệ thống! Lời nhắn sẽ xuất hiện sau khi được duyệt. 💌';
   }catch(err){
