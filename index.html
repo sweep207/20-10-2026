@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#210d2a">
 <title>20/10 · Những lời thương từ Nhóm 3</title>
+<meta name="description" content="Lời chúc 20/10 của Nhóm 3">
+<meta name="supabase-url" content="https://qssgctzdlzslgwhtcfxu.supabase.co">
+<meta name="supabase-anon-key" content="sb_publishable_xVz-EVRzLzDDUPPf5DsP-A_xlmQkLR7">
 <style>
 :root{color-scheme:dark;--pink:#ff8cbd;--rose:#ff4e98;--gold:#ffe4ad;--ink:#fff4fa;--panel:#ffffff0d;--line:#ffc4df45}
 *{box-sizing:border-box}
@@ -151,24 +154,28 @@ button,input,textarea{font:inherit}button{border:0;border-radius:999px;padding:1
 <p class="desc">Chỉ lời nhắn đã duyệt mới hiện trong danh sách công khai.</p>
 <div class="personal-list" id="personalList"></div>
 </div>
-<div class="panel">
-<h3>🔐 Khu vực duyệt lời chúc — bản demo</h3>
-<p class="desc">Khu vực này mô phỏng quy trình duyệt trên cùng trình duyệt. Mã demo không phải bảo mật thật; trước khi đưa lên mạng, cần chuyển quyền duyệt sang backend.</p>
-<div class="field"><label for="adminCode">Mã demo quản trị</label><input id="adminCode" type="password" autocomplete="off" placeholder="Nhập mã demo"></div>
-<div class="form-actions"><button type="button" id="adminLogin">Mở khu vực duyệt</button><button type="button" class="secondary" id="adminLogout">Đóng</button></div>
-<p class="hint">Mã demo: <b>nhom3-2010</b> (chỉ để thử giao diện, không dùng làm mật khẩu thật).</p>
-<div id="moderationArea" hidden>
-<p class="status" id="moderationStatus" aria-live="polite"></p>
-<div id="pendingList" class="personal-list"></div>
+<div class="panel" id="adminPanel">
+<h3>🔐 Quản trị lời chúc · Tài khoản chính</h3>
+<p class="desc">Đăng nhập bằng tài khoản quản trị đã được cấp quyền trong Supabase. Chỉ tài khoản nằm trong danh sách admin mới xem và duyệt được lời chúc chờ.</p>
+<form id="adminLoginForm">
+<div class="field"><label for="adminEmail">Email quản trị</label><input id="adminEmail" type="email" autocomplete="username" required placeholder="Email tài khoản Supabase"></div>
+<div class="field"><label for="adminPassword">Mật khẩu</label><input id="adminPassword" type="password" autocomplete="current-password" required placeholder="Mật khẩu tài khoản Supabase"></div>
+<div class="form-actions"><button type="submit" id="adminLoginBtn">Đăng nhập quản trị</button><button type="button" class="secondary" id="adminLogoutBtn" hidden>Đăng xuất</button></div>
+<p class="status" id="adminStatus" aria-live="polite">Chưa đăng nhập.</p>
+</form>
+<div id="adminQueue" hidden>
+<div class="form-actions"><button type="button" class="secondary" id="refreshPendingBtn">Làm mới hàng chờ</button></div>
+<h4>Lời chúc đang chờ duyệt</h4>
+<div class="personal-list" id="pendingList"></div>
 </div>
 </div>
 <div class="panel">
 <h3>📦 Lưu bản sao lời chúc</h3>
-<p class="desc">Tải các lời chúc đã duyệt về máy để lưu trữ. Trong demo này dữ liệu chỉ nằm trên trình duyệt hiện tại.</p>
+<p class="desc">Tải các lời chúc đã duyệt đang được tải từ Supabase về máy để lưu trữ.</p>
 <div class="form-actions"><button type="button" class="secondary" id="exportWishes">Tải lời chúc đã duyệt (.txt)</button></div>
 </div>
 </section>
-<footer class="foot">BẢN DEMO QUY TRÌNH DUYỆT · Chưa chỉnh sửa repository GitHub<br>Dữ liệu hiện chỉ lưu trên trình duyệt này; để mọi người ở các thiết bị khác cùng xem, cần kết nối backend như Supabase/Firebase.</footer>
+<footer class="foot">NHÓM 3 · LỜI CHÚC 20/10<br>Dữ liệu được đọc và gửi qua Supabase. Hãy cấu hình bảng và Row Level Security (RLS) theo hướng dẫn trước khi công khai.</footer>
 </main>
 
 <div class="musicbar"><span class="musicnote" id="musicStatus">Nhạc nền dịu dàng</span><button id="musicToggle" class="secondary" aria-pressed="false">▶ Bật nhạc</button></div>
@@ -220,71 +227,143 @@ let lastTrail=0;
 window.addEventListener('pointermove',e=>{if(!matchMedia('(hover: hover) and (pointer: fine)').matches)return;const now=performance.now();if(now-lastTrail<75)return;lastTrail=now;const t=document.createElement('span');t.className='repo-trail';t.textContent=originalHearts[Math.floor(Math.random()*4)];t.style.left=e.clientX+'px';t.style.top=e.clientY+'px';t.style.fontSize=(10+Math.random()*10)+'px';t.style.setProperty('--tx',(Math.random()*50-25)+'px');document.body.appendChild(t);setTimeout(()=>t.remove(),1050)});
 setInterval(()=>{if(Math.random()<.8)originalHeart()},950);
 $('envelope').addEventListener('click',e=>{if(e.detail!==0)originalBurst(e.clientX,e.clientY,8)});
-const KEY='twentieth-october-group3-moderation-v3';
-let approved=[], pending=[];
-try{
- const saved=JSON.parse(localStorage.getItem(KEY)||'{}');
- approved=Array.isArray(saved.approved)?saved.approved:[];
- pending=Array.isArray(saved.pending)?saved.pending:[];
-}catch(e){approved=[];pending=[]}
-function persist(){try{localStorage.setItem(KEY,JSON.stringify({approved,pending}))}catch(e){$('formStatus').textContent='Không lưu được trên trình duyệt này. Hãy tải bản sao lời chúc.'}}
+
+// Supabase REST API — dữ liệu chung giữa các thiết bị.
+// Đồng bộ với bảng public.wishes hiện có trong Supabase: id, sender_name, message, status, created_at.
+// Không dùng cột name/recipient/submitted_at/approved_at vì bảng hiện tại không có các cột đó.
+// RLS: anon được INSERT lời chúc pending và SELECT các lời chúc approved. Duyệt bằng Dashboard.
+const SUPABASE_URL = document.querySelector('meta[name="supabase-url"]').content;
+const SUPABASE_KEY = document.querySelector('meta[name="supabase-anon-key"]').content;
+const API = SUPABASE_URL + '/rest/v1';
+const headers = {'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type':'application/json'};
+let adminSession = null;
+function apiHeaders(extra={}) { return {...headers, ...(adminSession?.access_token ? {'Authorization':'Bearer '+adminSession.access_token} : {}), ...extra}; }
+let approved = [];
+let pending = [];
+function safeText(v){return typeof v === 'string' ? v : ''}
+function fromDb(row){return {id:row.id, name:safeText(row.sender_name), to:'', message:safeText(row.message), submittedAt:row.created_at}}
+async function apiFetch(path, options={}) {
+  const response = await fetch(API + path, { ...options, headers: apiHeaders(options.headers||{}) });
+  if(!response.ok){let detail='';try{detail=await response.text()}catch(e){};throw new Error('Supabase ('+response.status+'): '+detail.slice(0,220))}
+  if(response.status===204)return null;
+  return response.json();
+}
 function makeWishCard(w, moderation=false, index=0){
- const article=document.createElement('article');article.className='personal';
- const h=document.createElement('h4');h.textContent='💌 '+(w.to?'Gửi '+w.to:(w.name||'Lời chúc từ Nhóm 3'));
- const p=document.createElement('p');p.textContent=(w.name?'Từ '+w.name+'\\n':'')+w.message;
- article.append(h,p);
- if(moderation){
-  const actions=document.createElement('div');actions.className='form-actions';
-  const yes=document.createElement('button');yes.className='mini';yes.textContent='Duyệt ✓';
-  yes.addEventListener('click',()=>{const item=pending.splice(index,1)[0];if(item){item.approvedAt=new Date().toISOString();approved.unshift(item);persist();renderPublic();renderPending();$('moderationStatus').textContent='Đã duyệt lời chúc. 💗';rain(8)}});
-  const no=document.createElement('button');no.className='secondary mini';no.textContent='Từ chối ×';
-  no.addEventListener('click',()=>{pending.splice(index,1);persist();renderPending();$('moderationStatus').textContent='Đã xóa lời chúc khỏi hàng chờ.'});
-  actions.append(yes,no);article.append(actions);
- }else{
-  const b=document.createElement('button');b.className='secondary mini';b.textContent='Chia sẻ ↗';b.addEventListener('click',()=>shareText((w.to?'Gửi '+w.to+': ':'')+w.message));article.append(b);
- }
- return article;
+  const article=document.createElement('article');article.className='personal';
+  const h=document.createElement('h4');h.textContent='💌 '+(w.to?'Gửi '+w.to:(w.name||'Lời chúc từ Nhóm 3'));
+  const p=document.createElement('p');p.textContent=(w.name?'Từ '+w.name+'\n':'')+w.message;
+  article.append(h,p);
+  const b=document.createElement('button');b.className='secondary mini';b.textContent='Chia sẻ ↗';
+  b.addEventListener('click',()=>shareText((w.to?'Gửi '+w.to+': ':'')+w.message));article.append(b);
+  return article;
 }
 function renderPublic(){
- const list=$('personalList');list.replaceChildren();
- if(!approved.length){const p=document.createElement('p');p.className='hint';p.textContent='Chưa có lời chúc nào được duyệt. Hãy là người gửi lời chúc đầu tiên!';list.append(p);return}
- approved.forEach(w=>list.append(makeWishCard(w)));
+  const list=$('personalList');list.replaceChildren();
+  if(!approved.length){const p=document.createElement('p');p.className='hint';p.textContent='Chưa có lời chúc nào được duyệt. Hãy là người gửi lời chúc đầu tiên!';list.append(p);return}
+  approved.forEach(w=>list.append(makeWishCard(w)));
 }
-function renderPending(){
- const list=$('pendingList');list.replaceChildren();
- if(!pending.length){const p=document.createElement('p');p.className='hint';p.textContent='Không có lời chúc nào đang chờ duyệt.';list.append(p);return}
- pending.forEach((w,i)=>list.append(makeWishCard(w,true,i)));
+async function loadApproved(){
+  const list=$('personalList');list.replaceChildren();
+  const loading=document.createElement('p');loading.className='hint';loading.textContent='Đang tải lời chúc…';list.append(loading);
+  try{
+    const rows=await apiFetch('/wishes?select=id,sender_name,message,status,created_at&status=eq.approved&order=created_at.desc');
+    approved=(rows||[]).map(fromDb);renderPublic();
+  }catch(e){list.replaceChildren();const p=document.createElement('p');p.className='status';p.textContent='Không tải được lời chúc từ máy chủ. Kiểm tra bảng wishes và chính sách RLS trong Supabase.';list.append(p);console.error(e)}
 }
-$('wishForm').addEventListener('submit',e=>{
- e.preventDefault();
- const name=$('wishName').value.trim(),to=$('wishTo').value.trim(),message=$('wishMessage').value.trim();
- if(!message){$('formStatus').textContent='Bạn hãy nhập lời chúc trước nhé.';return}
- pending.unshift({id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),name,to,message,submittedAt:new Date().toISOString()});
- persist();renderPending();$('wishName').value='';$('wishTo').value='';$('wishMessage').value='';
- $('formStatus').textContent='Đã nhận lời chúc! Lời nhắn đang chờ duyệt và chưa xuất hiện công khai. 💌';
- if(!$('moderationArea').hidden)$('moderationStatus').textContent='Có lời chúc mới trong hàng chờ.';
+$('wishForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const name=$('wishName').value.trim(),to=$('wishTo').value.trim(),message=$('wishMessage').value.trim();
+  if(!message){$('formStatus').textContent='Bạn hãy nhập lời chúc trước nhé.';return}
+  const submit=e.submitter || $('wishForm').querySelector('[type="submit"]');
+  submit.disabled=true;$('formStatus').textContent='Đang gửi lời chúc…';
+  try{
+    const finalMessage=to ? 'Gửi '+to+': '+message : message;
+    await apiFetch('/wishes',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({sender_name:name||null,message:finalMessage,status:'pending'})});
+    $('wishName').value='';$('wishTo').value='';$('wishMessage').value='';
+    $('formStatus').textContent='Đã gửi lời chúc lên hệ thống! Lời nhắn sẽ xuất hiện sau khi được duyệt. 💌';
+  }catch(err){
+    $('formStatus').textContent='Chưa gửi được. Hãy kiểm tra cấu hình bảng/RLS Supabase rồi thử lại.';
+    console.error(err);
+  }finally{submit.disabled=false}
 });
-$('adminLogin').addEventListener('click',()=>{
- if($('adminCode').value==='nhom3-2010'){$('moderationArea').hidden=false;$('moderationStatus').textContent='Đang ở chế độ demo trên thiết bị này.';renderPending();$('adminCode').value='';}
- else{$('moderationStatus').textContent='Mã demo chưa đúng.';$('moderationArea').hidden=true}
-});
-$('adminLogout').addEventListener('click',()=>{$('moderationArea').hidden=true;$('adminCode').value='';});
-function allWishesText(){return approved.map(w=>(w.to?'Gửi '+w.to+' — ':'')+(w.name?'Từ '+w.name+': ':'')+w.message).join('\\n\\n')}
-$('exportWishes').addEventListener('click',()=>{
- if(!approved.length){$('formStatus').textContent='Chưa có lời chúc nào được duyệt để tải.';return}
- const blob=new Blob([allWishesText()],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
- a.href=url;a.download='loi-chuc-20-10-nhom-3.txt';a.click();URL.revokeObjectURL(url);
- $('formStatus').textContent='Đã tạo file lời chúc đã duyệt để lưu lại.';
+$('exportWishes').addEventListener('click',async()=>{
+  try{
+    const rows=await apiFetch('/wishes?select=sender_name,message,status,created_at&status=eq.approved&order=created_at.desc');
+    if(!rows.length){$('formStatus').textContent='Chưa có lời chúc nào được duyệt để tải.';return}
+    const content=rows.map(w=>(w.sender_name?'Từ '+w.sender_name+': ':'')+w.message).join('\n\n');
+    const blob=new Blob([content],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download='loi-chuc-20-10-nhom-3.txt';a.click();URL.revokeObjectURL(url);
+    $('formStatus').textContent='Đã tạo file lời chúc đã duyệt.';
+  }catch(err){$('formStatus').textContent='Không tải được dữ liệu. Kiểm tra Supabase/RLS.';console.error(err)}
 });
 async function shareText(text){
- try{if(navigator.share){await navigator.share({title:'Lời chúc 20/10 · Nhóm 3',text});return}
- if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);alert('Đã sao chép lời chúc!');return}}
- catch(e){if(e.name==='AbortError')return}
- const ta=document.createElement('textarea');ta.value=text;document.body.append(ta);ta.select();
- try{document.execCommand('copy');alert('Đã sao chép lời chúc!')}catch(e){prompt('Sao chép lời chúc này:',text)}ta.remove()
+  try{if(navigator.share){await navigator.share({title:'Lời chúc 20/10 · Nhóm 3',text});return}
+  if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);alert('Đã sao chép lời chúc!');return}}
+  catch(e){if(e.name==='AbortError')return}
+  const ta=document.createElement('textarea');ta.value=text;document.body.append(ta);ta.select();
+  try{document.execCommand('copy');alert('Đã sao chép lời chúc!')}catch(e){prompt('Sao chép lời chúc này:',text)}ta.remove()
 }
-$('sharePage').addEventListener('click',()=>shareText('Chúc mừng ngày 20/10! 🌷 Gửi các bạn nữ Nhóm 3 thật nhiều yêu thương, niềm vui và những điều tốt đẹp. 💖\\n\\n'+location.href));
-renderPublic();renderPending();
+$('sharePage').addEventListener('click',()=>shareText('Chúc mừng ngày 20/10! 🌷 Gửi các bạn nữ Nhóm 3 thật nhiều yêu thương, niềm vui và những điều tốt đẹp. 💖\n\n'+location.href));
+
+// Quản trị thật dùng Supabase Auth + bảng allowlist public.admin_users.
+// Không nhúng mật khẩu hay quyền admin vào HTML.
+async function authRequest(path, body){
+ const res=await fetch(SUPABASE_URL+path,{method:'POST',headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify(body)});
+ const data=await res.json().catch(()=>({}));
+ if(!res.ok)throw new Error(data.msg||data.message||data.error_description||data.error||'Đăng nhập thất bại ('+res.status+')');
+ return data;
+}
+async function checkAdmin(){
+ if(!adminSession?.user?.id) return false;
+ const rows=await apiFetch('/admin_users?select=user_id&user_id=eq.'+encodeURIComponent(adminSession.user.id));
+ return Array.isArray(rows)&&rows.some(r=>r.user_id===adminSession.user.id);
+}
+function renderPending(rows){
+ const list=$('pendingList');list.replaceChildren();
+ if(!rows.length){const p=document.createElement('p');p.className='hint';p.textContent='Không có lời chúc nào đang chờ duyệt.';list.append(p);return}
+ rows.forEach(row=>{
+  const w=fromDb(row), card=document.createElement('article');card.className='personal';
+  const h=document.createElement('h4');h.textContent='💌 '+(w.name||'Người gửi ẩn danh');
+  const p=document.createElement('p');p.textContent=w.message;
+  const time=document.createElement('p');time.className='hint';time.textContent=w.submittedAt?new Date(w.submittedAt).toLocaleString('vi-VN'):'';
+  const btn=document.createElement('button');btn.textContent='✓ Duyệt và công khai';btn.addEventListener('click',async()=>{
+   btn.disabled=true;
+   try{
+    await apiFetch('/wishes?id=eq.'+encodeURIComponent(row.id)+'&status=eq.pending',{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({status:'approved'})});
+    $('adminStatus').textContent='Đã duyệt lời chúc.';
+    await loadPending();await loadApproved();
+   }catch(err){$('adminStatus').textContent='Duyệt thất bại: '+err.message;btn.disabled=false;console.error(err)}
+  });
+  card.append(h,p,time,btn);list.append(card);
+ });
+}
+async function loadPending(){
+ if(!adminSession)return;
+ $('adminStatus').textContent='Đang tải hàng chờ…';
+ try{
+  const rows=await apiFetch('/wishes?select=id,sender_name,message,status,created_at&status=eq.pending&order=created_at.asc');
+  renderPending(rows||[]);$('adminStatus').textContent='Đã đăng nhập quản trị. '+(rows||[]).length+' lời chúc đang chờ.';
+ }catch(err){$('adminStatus').textContent='Không tải được hàng chờ: '+err.message;console.error(err)}
+}
+$('adminLoginForm').addEventListener('submit',async e=>{
+ e.preventDefault();const btn=$('adminLoginBtn');btn.disabled=true;$('adminStatus').textContent='Đang xác thực…';
+ try{
+  const session=await authRequest('/auth/v1/token?grant_type=password',{email:$('adminEmail').value.trim(),password:$('adminPassword').value});
+  adminSession=session;
+  if(!await checkAdmin()){adminSession=null;throw new Error('Tài khoản hợp lệ nhưng chưa được cấp quyền admin. Thêm UID của tài khoản vào public.admin_users theo hướng dẫn SQL.')}
+  $('adminQueue').hidden=false;$('adminLogoutBtn').hidden=false;$('adminLoginBtn').hidden=true;
+  $('adminEmail').disabled=true;$('adminPassword').value='';$('adminPassword').disabled=true;
+  await loadPending();
+ }catch(err){adminSession=null;$('adminStatus').textContent=err.message;console.error(err)}
+ finally{btn.disabled=false}
+});
+$('adminLogoutBtn').addEventListener('click',()=>{
+ adminSession=null;$('adminQueue').hidden=true;$('adminLogoutBtn').hidden=true;$('adminLoginBtn').hidden=false;
+ $('adminEmail').disabled=false;$('adminPassword').disabled=false;$('adminLoginForm').reset();$('adminStatus').textContent='Đã đăng xuất.';
+});
+$('refreshPendingBtn').addEventListener('click',loadPending);
+
+loadApproved();
 
 // Nhạc nền được tạo bằng Web Audio, không cần tải thêm tệp nhạc ngoài.
 // Trình duyệt thường chặn autoplay có âm thanh; trang thử bật nhẹ khi tải,
