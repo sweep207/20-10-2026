@@ -388,21 +388,37 @@ $('refreshPendingBtn').addEventListener('click',loadPending);
 
 loadApproved();
 
-// Nhạc nền được tạo bằng Web Audio, không cần tải thêm tệp nhạc ngoài.
-// Trình duyệt thường chặn autoplay có âm thanh; trang thử bật nhẹ khi tải,
-// nếu bị chặn thì nút phát nhạc luôn sẵn để người xem chủ động bật.
-let audioCtx=null,master=null,musicTimer=null,musicOn=false,noteIndex=0;
-const melody=[523.25,659.25,783.99,659.25,587.33,698.46,880,698.46,523.25,659.25,783.99,1046.5,880,783.99,659.25,587.33];
-function playNote(freq,duration=.72){if(!audioCtx||!master)return;const now=audioCtx.currentTime;const osc=audioCtx.createOscillator();const gain=audioCtx.createGain();osc.type='sine';osc.frequency.value=freq;gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.075,now+.07);gain.gain.exponentialRampToValueAtTime(.0001,now+duration);osc.connect(gain);gain.connect(master);osc.start(now);osc.stop(now+duration+.03)}
-async function startMusic(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC){$('musicStatus').textContent='Thiết bị không hỗ trợ nhạc';return}if(!audioCtx){audioCtx=new AC();master=audioCtx.createGain();master.gain.value=.38;master.connect(audioCtx.destination)}await audioCtx.resume();if(musicOn)return;musicOn=true;$('musicToggle').textContent='Ⅱ Tắt nhạc';$('musicToggle').setAttribute('aria-pressed','true');$('musicStatus').textContent='♪ Đang phát nhạc nền';playNote(melody[noteIndex++%melody.length],.9);musicTimer=setInterval(()=>{if(musicOn)playNote(melody[noteIndex++%melody.length],.9)},760)}catch(e){$('musicStatus').textContent='Chạm “Bật nhạc” để thử lại'}}
-function stopMusic(){musicOn=false;if(musicTimer){clearInterval(musicTimer);musicTimer=null}if(master)master.gain.setTargetAtTime(.0001,audioCtx.currentTime,.08);$('musicToggle').textContent='▶ Bật nhạc';$('musicToggle').setAttribute('aria-pressed','false');$('musicStatus').textContent='Nhạc nền đã tắt'}
-$('musicToggle').addEventListener('click',()=>{if(musicOn)stopMusic();else startMusic()});
-window.addEventListener('load',()=>{const attempt=()=>startMusic();attempt().catch(()=>{});setTimeout(()=>{if(!musicOn)$('musicStatus').textContent='Chạm vào trang để phát nhạc ♫'},1200)});
-// Tự phát ở lần chạm/click đầu tiên trên trang (theo quy định chặn autoplay của trình duyệt).
-// Không can thiệp nút nhạc để nút đó vẫn có thể bật/tắt bình thường.
-function startMusicOnFirstInteraction(event){if(event.target&&event.target.closest&&event.target.closest('#musicToggle'))return;startMusic();document.removeEventListener('pointerdown',startMusicOnFirstInteraction,true);document.removeEventListener('keydown',startMusicOnFirstInteraction,true)}
-document.addEventListener('pointerdown',startMusicOnFirstInteraction,true);
-document.addEventListener('keydown',startMusicOnFirstInteraction,true);
+
+<audio id="bgMusic" loop preload="auto">
+  <source
+    src="https://www.image2url.com/r2/default/audio/1792435728485-b22b3d97-2351-4c20-b78d-5e28b8b616dc.mp3"
+    type="audio/mpeg"
+  >
+</audio>
+
+<script>
+  const music = document.getElementById("bgMusic");
+
+  music.volume = 0.4;
+
+  // Tự động phát khi vào website
+  window.addEventListener("load", async () => {
+    try {
+      await music.play();
+    } catch (error) {
+      // Trình duyệt chặn autoplay
+      console.log("Chờ người dùng tương tác để phát nhạc");
+    }
+  });
+
+  // Phát nhạc khi khách chạm vào màn hình
+  document.addEventListener("click", () => {
+    if (music.paused) {
+      music.play().catch(() => {});
+    }
+  }, { once: true });
+</script>
+
 </script>
 </body>
 </html>
