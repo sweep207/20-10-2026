@@ -389,6 +389,8 @@ $('refreshPendingBtn').addEventListener('click',loadPending);
 loadApproved();
 
 
+</script>
+
 <audio id="bgMusic" loop preload="auto">
   <source
     src="https://www.image2url.com/r2/default/audio/1792435728485-b22b3d97-2351-4c20-b78d-5e28b8b616dc.mp3"
@@ -397,28 +399,35 @@ loadApproved();
 </audio>
 
 <script>
-  const music = document.getElementById("bgMusic");
+const music = document.getElementById("bgMusic");
+const toggle = document.getElementById("musicToggle");
+const status = document.getElementById("musicStatus");
 
-  music.volume = 0.4;
+music.volume = 0.4;
 
-  // Tự động phát khi vào website
-  window.addEventListener("load", async () => {
-    try {
-      await music.play();
-    } catch (error) {
-      // Trình duyệt chặn autoplay
-      console.log("Chờ người dùng tương tác để phát nhạc");
-    }
-  });
+async function playMusic() {
+  try {
+    await music.play();
+    toggle.textContent = "🔇 Tắt nhạc";
+    toggle.setAttribute("aria-pressed", "true");
+    status.textContent = "Đang phát nhạc 🎵";
+  } catch (error) {
+    status.textContent = "Chạm để bật nhạc 🎵";
+  }
+}
 
-  // Phát nhạc khi khách chạm vào màn hình
-  document.addEventListener("click", () => {
-    if (music.paused) {
-      music.play().catch(() => {});
-    }
-  }, { once: true });
-</script>
+toggle.addEventListener("click", async () => {
+  if (music.paused) {
+    await playMusic();
+  } else {
+    music.pause();
+    toggle.textContent = "▶ Bật nhạc";
+    toggle.setAttribute("aria-pressed", "false");
+    status.textContent = "Nhạc nền đã tắt";
+  }
+});
 
+window.addEventListener("load", playMusic);
 </script>
 </body>
 </html>
